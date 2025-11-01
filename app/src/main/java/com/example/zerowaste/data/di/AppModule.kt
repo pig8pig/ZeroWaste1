@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.zerowaste.data.db.AppDatabase
 import com.example.zerowaste.data.db.GroceryDao
+import com.example.zerowaste.data.db.RecipeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,5 +32,11 @@ object AppModule {
     @Singleton
     fun provideGroceryDao(appDatabase: AppDatabase): GroceryDao {
         return appDatabase.groceryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRecipeDao(appDatabase: AppDatabase): RecipeDao {
+        return appDatabase.recipeDao()
     }
 }

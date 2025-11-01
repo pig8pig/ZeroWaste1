@@ -111,17 +111,10 @@ fun ScanScreen(
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        OutlinedButton(
-                            onClick = { cameraLauncher.launch(null) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Scan again")
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
                         Button(
                             onClick = {
                                 if (type == "in") {
@@ -131,12 +124,33 @@ fun ScanScreen(
                                 }
                                 onConfirm()
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF4A90E2) // A nice blue color
                             )
                         ) {
-                            Text("Done")
+                            Text("Add and scan again")
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OutlinedButton(
+                                onClick = { cameraLauncher.launch(null) },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Rescan")
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            OutlinedButton(
+                                onClick = { onConfirm() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Done")
+                            }
                         }
                     }
                 }
