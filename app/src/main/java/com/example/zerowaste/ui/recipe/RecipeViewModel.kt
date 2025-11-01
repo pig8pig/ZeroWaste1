@@ -26,7 +26,7 @@ class RecipeViewModel @Inject constructor() : ViewModel() {
     private val _uiState = MutableStateFlow<RecipeUiState>(RecipeUiState.Initial)
     val uiState: StateFlow<RecipeUiState> = _uiState
 
-    private val API_KEY = ""
+    private val API_KEY = "AIzaSyBOodH4-cixzkYcoYhlge2tgFFWcV8yNFg"
 
     fun generateRecipes() {
         viewModelScope.launch {

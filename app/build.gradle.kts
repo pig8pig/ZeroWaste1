@@ -10,12 +10,12 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
 }
 
-// Read the api key from the local.properties file
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
+//// Read the api key from the local.properties file
+//val localProperties = Properties()
+//val localPropertiesFile = rootProject.file("local.properties")
+//if (localPropertiesFile.exists()) {
+//    localProperties.load(FileInputStream(localPropertiesFile))
+//}
 
 android {
     namespace = "com.example.zerowaste"
@@ -31,8 +31,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        buildConfigField("String", "GEMINI_API_KEY", localProperties.getProperty("GEMINI_API_KEY") ?: "")
+//
+//        buildConfigField("String", "GEMINI_API_KEY", localProperties.getProperty("GEMINI_API_KEY") ?: "")
     }
 
     buildTypes {
@@ -53,7 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
+//        buildConfig = true
     }
 }
 
