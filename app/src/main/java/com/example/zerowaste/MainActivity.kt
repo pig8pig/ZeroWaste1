@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.zerowaste.data.model.Grocery
 import com.example.zerowaste.ui.all_groceries.AllGroceriesScreen
 import com.example.zerowaste.ui.home.HomeViewModel
+import com.example.zerowaste.ui.scan.ScanScreen
 import com.example.zerowaste.ui.theme.ZeroWasteTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -93,7 +94,10 @@ fun MainScreen() {
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
             composable("home") { HomeScreen(navController) }
             composable("all-groceries") { AllGroceriesScreen() }
-            composable("scan") { ScanScreen() }
+            composable("scan/{type}") { backStackEntry ->
+                val type = backStackEntry.arguments?.getString("type") ?: "in"
+                ScanScreen(type = type, onConfirm = { navController.navigate("home") })
+            }
             composable("order") { OrderScreen() }
             composable("recipes") { RecipesScreen() }
         }
@@ -132,9 +136,17 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { navController.navigate("scan") }) {
-                Text("Scan Food")
+            Button(onClick = { navController.navigate("scan/in") }) {
+                Text("Food In")
             }
+            Button(onClick = { navController.navigate("scan/out") }) {
+                Text("Food Out")
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             Button(onClick = { navController.navigate("order") }) {
                 Text("Order Foods")
             }
@@ -181,11 +193,6 @@ fun FoodListItem(grocery: Grocery) {
             Text(text = expiryText, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
         }
     }
-}
-
-@Composable
-fun ScanScreen() {
-    Text(text = "Scan Screen")
 }
 
 @Composable
