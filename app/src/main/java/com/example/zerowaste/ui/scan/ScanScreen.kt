@@ -1,7 +1,6 @@
 package com.example.zerowaste.ui.scan
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,8 +117,12 @@ fun ScanScreen(
                     ) {
                         Button(
                             onClick = {
-                                viewModel.saveGrocery(food)
-                                cameraLauncher.launch(null) // Relaunch for next item
+                                if (type == "in") {
+                                    viewModel.saveGrocery(food)
+                                } else {
+                                    viewModel.removeGrocery(food)
+                                }
+                                onConfirm()
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(

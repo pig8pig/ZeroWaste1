@@ -110,4 +110,32 @@ Do not include any other text, explanations, or markdown like ```json in your re
             }
         }
     }
+
+    fun removeGrocery(scannedFoodItem: ScannedFoodItem) {
+        viewModelScope.launch {
+            var quantityToRemove = scannedFoodItem.quantity
+
+            while (quantityToRemove > 0) {
+                val groceryToRemove = groceryDao.getFirstExpiringGroceryByName(scannedFoodItem.name)
+
+                if (groceryToRemove == null) {
+                    // No more items of this name in the database, so stop.
+                    break
+                }
+
+                if (groceryToRemove.quantity > quantityToRemove) {
+                    // This item has more quantity than we need to remove.
+                    // Reduce its quantity and we are done.
+                    val newQuantity = groceryToRemove.quantity - quantityToRemove
+                    groceryDao.update(groceryToRemove.copy(quantity = newQuantity))
+                    quantityToRemove = 0 // Exit loop
+                } else {
+                    // This item's quantity is less than or equal to what we need to remove.
+                    // Remove this item completely and continue the loop.
+                    quantityToRemove -= groceryToRemove.quantity
+                    groceryDao.delete(groceryToRemove)
+                }
+            }
+        }
+    }
 }
