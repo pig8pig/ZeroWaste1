@@ -41,7 +41,7 @@ class ScanViewModel @Inject constructor(
         viewModelScope.launch {
             // Mocked data for a scanned food item
             val grocery = if (type == "in") {
-                Grocery(name = "Apples", quantity = 1, units = "pcs", daysToExpiry = 5)
+                Grocery(name = "Apples", quantity = 1, units = "pcs", daysToExpiry = 5, type = "Fruit")
             } else {
                 groceryDao.getFirstExpiringGroceryByName("Apples")
             }

@@ -4,14 +4,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,34 +31,56 @@ fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
     val groceries by viewModel.groceries.collectAsState()
     val filter by viewModel.filter.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text(text = "All Groceries", style = MaterialTheme.typography.headlineLarge)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         OutlinedTextField(
             value = "",
             onValueChange = {},
             label = { Text("Search Groceries") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
         )
 
         LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.ALL) }) {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.All) }) {
                     Text("All")
                 }
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.EXPIRING_TODAY) }) {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.ExpiringToday) }) {
                     Text("Today")
                 }
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.EXPIRING_TOMORROW) }) {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.ExpiringTomorrow) }) {
                     Text("Tomorrow")
+                }
+            }
+            item {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Fruit")) }) {
+                    Text("Fruit")
+                }
+            }
+            item {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Vegetable")) }) {
+                    Text("Vegetable")
+                }
+            }
+            item {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Meat")) }) {
+                    Text("Meat")
+                }
+            }
+            item {
+                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Dairy")) }) {
+                    Text("Dairy")
                 }
             }
         }

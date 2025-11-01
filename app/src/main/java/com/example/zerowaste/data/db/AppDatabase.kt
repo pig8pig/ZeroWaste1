@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.zerowaste.data.model.Grocery
 
-@Database(entities = [Grocery::class], version = 3)
+@Database(entities = [Grocery::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun groceryDao(): GroceryDao
 }

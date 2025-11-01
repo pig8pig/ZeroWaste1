@@ -10,5 +10,6 @@ data class Grocery(
     val name: String,
     val quantity: Int,
     val units: String,
-    val daysToExpiry: Int
+    val daysToExpiry: Int,
+    val type: String
 )

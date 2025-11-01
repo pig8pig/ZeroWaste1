@@ -3,18 +3,26 @@ package com.example.zerowaste
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -22,7 +30,6 @@ import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -35,7 +42,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -76,7 +85,7 @@ fun MainScreen() {
                 }, onClick = { navController.navigate("all-groceries") })
                 BottomNavigationItem(icon = {
                     Icon(Icons.Filled.Scanner, contentDescription = "Scan")
-                }, onClick = { navController.navigate("scan") })
+                }, onClick = { navController.navigate("scan/in") })
                 BottomNavigationItem(icon = {
                     Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
                 }, onClick = { navController.navigate("order") })
@@ -124,35 +133,28 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
     ) {
-        Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Welcome back!", style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(onClick = { navController.navigate("scan/in") }) {
-                Text("Food In")
-            }
-            Button(onClick = { navController.navigate("scan/out") }) {
-                Text("Food Out")
-            }
+            Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
+            Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { navController.navigate("order") }) {
-                Text("Order Foods")
-            }
-            Button(onClick = { navController.navigate("recipes") }) {
-                Text("Create Recipe")
-            }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 2x2 Grid
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food In", onClick = { navController.navigate("scan/in") })
+            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food Out", onClick = { navController.navigate("scan/out") })
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.ShoppingCart, text = "Order Food", onClick = { navController.navigate("order") })
+            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.RestaurantMenu, text = "Create Recipe", onClick = { navController.navigate("recipes") })
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -164,6 +166,27 @@ fun HomeScreen(
             items(expiringSoon) { grocery ->
                 FoodListItem(grocery)
             }
+        }
+    }
+}
+
+@Composable
+fun ActionCard(modifier: Modifier = Modifier, icon: ImageVector, text: String, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .aspectRatio(2.5f)
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = text, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

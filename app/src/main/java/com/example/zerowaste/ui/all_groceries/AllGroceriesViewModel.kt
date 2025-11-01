@@ -12,10 +12,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-enum class GroceryFilter {
-    ALL,
-    EXPIRING_TODAY,
-    EXPIRING_TOMORROW
+sealed class GroceryFilter {
+    object All : GroceryFilter()
+    object ExpiringToday : GroceryFilter()
+    object ExpiringTomorrow : GroceryFilter()
+    data class Type(val type: String) : GroceryFilter()
 }
 
 @HiltViewModel
@@ -23,14 +24,15 @@ class AllGroceriesViewModel @Inject constructor(
     private val groceryDao: GroceryDao
 ) : ViewModel() {
 
-    private val _filter = MutableStateFlow(GroceryFilter.ALL)
+    private val _filter = MutableStateFlow<GroceryFilter>(GroceryFilter.All)
     val filter: StateFlow<GroceryFilter> = _filter
 
     val groceries: StateFlow<List<Grocery>> = _filter.flatMapLatest { filter ->
         when (filter) {
-            GroceryFilter.ALL -> groceryDao.getAllGroceries()
-            GroceryFilter.EXPIRING_TODAY -> groceryDao.getExpiringToday()
-            GroceryFilter.EXPIRING_TOMORROW -> groceryDao.getExpiringTomorrow()
+            GroceryFilter.All -> groceryDao.getAllGroceries()
+            GroceryFilter.ExpiringToday -> groceryDao.getExpiringToday()
+            GroceryFilter.ExpiringTomorrow -> groceryDao.getExpiringTomorrow()
+            is GroceryFilter.Type -> groceryDao.getGroceriesByType(filter.type)
         }
     }.stateIn(
         scope = viewModelScope,

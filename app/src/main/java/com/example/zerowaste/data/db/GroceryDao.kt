@@ -14,7 +14,7 @@ interface GroceryDao {
     @Query("SELECT * FROM groceries ORDER BY daysToExpiry ASC LIMIT 3")
     fun getExpiringSoon(): Flow<List<Grocery>>
 
-    @Query("SELECT * FROM groceries")
+    @Query("SELECT * FROM groceries ORDER BY daysToExpiry ASC")
     fun getAllGroceries(): Flow<List<Grocery>>
 
     @Query("SELECT * FROM groceries WHERE daysToExpiry = 0")
@@ -22,6 +22,9 @@ interface GroceryDao {
 
     @Query("SELECT * FROM groceries WHERE daysToExpiry = 1")
     fun getExpiringTomorrow(): Flow<List<Grocery>>
+
+    @Query("SELECT * FROM groceries WHERE type = :type")
+    fun getGroceriesByType(type: String): Flow<List<Grocery>>
 
     @Query("SELECT * FROM groceries WHERE name = :name ORDER BY daysToExpiry ASC LIMIT 1")
     suspend fun getFirstExpiringGroceryByName(name: String): Grocery?
