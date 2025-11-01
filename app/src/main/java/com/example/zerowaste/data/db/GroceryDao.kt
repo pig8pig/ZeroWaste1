@@ -15,6 +15,12 @@ interface GroceryDao {
     @Query("SELECT * FROM groceries")
     fun getAllGroceries(): Flow<List<Grocery>>
 
+    @Query("SELECT * FROM groceries WHERE daysToExpiry = 0")
+    fun getExpiringToday(): Flow<List<Grocery>>
+
+    @Query("SELECT * FROM groceries WHERE daysToExpiry = 1")
+    fun getExpiringTomorrow(): Flow<List<Grocery>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(groceries: List<Grocery>)
 

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,21 +67,21 @@ fun MainScreen() {
     Scaffold(
         bottomBar = {
             BottomAppBar {
-                IconButton(onClick = { navController.navigate("home") }) {
+                BottomNavigationItem(icon = {
                     Icon(Icons.Filled.Home, contentDescription = "Home")
-                }
-                IconButton(onClick = { navController.navigate("all-groceries") }) {
+                }, onClick = { navController.navigate("home") })
+                BottomNavigationItem(icon = {
                     Icon(Icons.Filled.List, contentDescription = "All Groceries")
-                }
-                IconButton(onClick = { navController.navigate("scan") }) {
+                }, onClick = { navController.navigate("all-groceries") })
+                BottomNavigationItem(icon = {
                     Icon(Icons.Filled.Scanner, contentDescription = "Scan")
-                }
-                IconButton(onClick = { navController.navigate("order") }) {
+                }, onClick = { navController.navigate("scan") })
+                BottomNavigationItem(icon = {
                     Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
-                }
-                IconButton(onClick = { navController.navigate("recipes") }) {
+                }, onClick = { navController.navigate("order") })
+                BottomNavigationItem(icon = {
                     Icon(Icons.Filled.RestaurantMenu, contentDescription = "Recipes")
-                }
+                }, onClick = { navController.navigate("recipes") })
             }
         },
         floatingActionButton = {
@@ -96,6 +97,16 @@ fun MainScreen() {
             composable("order") { OrderScreen() }
             composable("recipes") { RecipesScreen() }
         }
+    }
+}
+
+@Composable
+fun RowScope.BottomNavigationItem(icon: @Composable () -> Unit, onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.weight(1f)
+    ) {
+        icon()
     }
 }
 
