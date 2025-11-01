@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -127,48 +129,83 @@ fun HomeScreen(
 ) {
     val expiringSoon by viewModel.expiringSoon.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { viewModel.advanceDay() }) {
+                Icon(Icons.Default.Add, contentDescription = "Advance Day")
+            }
+        }
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
-            Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
+                Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // 2x2 Grid
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food In", onClick = { navController.navigate("scan/in") })
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food Out", onClick = { navController.navigate("scan/out") })
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.ShoppingCart, text = "Order Food", onClick = { navController.navigate("order") })
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.RestaurantMenu, text = "Create Recipe", onClick = { navController.navigate("recipes") })
-        }
+            // 2x2 Grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Scanner,
+                    text = "Food In",
+                    onClick = { navController.navigate("scan/in") })
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Scanner,
+                    text = "Food Out",
+                    onClick = { navController.navigate("scan/out") })
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.ShoppingCart,
+                    text = "Order Food",
+                    onClick = { navController.navigate("order") })
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.RestaurantMenu,
+                    text = "Create Recipe",
+                    onClick = { navController.navigate("recipes") })
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(text = "Expiring Soon", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Expiring Soon", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn {
-            items(expiringSoon) { grocery ->
-                FoodListItem(grocery)
+            LazyColumn {
+                items(expiringSoon) { grocery ->
+                    FoodListItem(grocery)
+                }
             }
         }
     }
 }
 
 @Composable
-fun ActionCard(modifier: Modifier = Modifier, icon: ImageVector, text: String, onClick: () -> Unit) {
+fun ActionCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .aspectRatio(2.5f)

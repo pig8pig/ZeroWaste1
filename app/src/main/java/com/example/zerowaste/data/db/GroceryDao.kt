@@ -17,6 +17,9 @@ interface GroceryDao {
     @Query("SELECT * FROM groceries ORDER BY daysToExpiry ASC")
     fun getAllGroceries(): Flow<List<Grocery>>
 
+    @Query("SELECT * FROM groceries")
+    suspend fun getAll(): List<Grocery>
+
     @Query("SELECT * FROM groceries WHERE daysToExpiry = 0")
     fun getExpiringToday(): Flow<List<Grocery>>
 
