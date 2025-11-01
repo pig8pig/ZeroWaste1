@@ -1,122 +1,116 @@
 package com.example.zerowaste.ui.scan
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.zerowaste.data.db.GroceryDao
-import com.example.zerowaste.data.model.Grocery
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class ScanViewModel @Inject constructor(
-    private val groceryDao: GroceryDao
-) : ViewModel() {
-
-    private val _scannedGrocery = MutableStateFlow<Grocery?>(null)
-    val scannedGrocery: StateFlow<Grocery?> = _scannedGrocery
-
-    fun scanFood(type: String) {
-        viewModelScope.launch {
-            // Mocked data for a scanned food item
-            val grocery = if (type == "in") {
-                Grocery(name = "Apples", quantity = 1, units = "pcs", daysToExpiry = 5, type = "Fruit")
-            } else {
-                groceryDao.getFirstExpiringGroceryByName("Apples")
-            }
-            _scannedGrocery.value = grocery
-        }
-    }
-
-    fun confirmScan(type: String, grocery: Grocery) {
-        viewModelScope.launch {
-            if (type == "in") {
-                val existingGrocery = groceryDao.getGroceryByNameAndExpiry(grocery.name, grocery.daysToExpiry)
-                if (existingGrocery != null) {
-                    groceryDao.update(existingGrocery.copy(quantity = existingGrocery.quantity + 1))
-                } else {
-                    groceryDao.insert(grocery)
-                }
-            } else {
-                if (grocery.quantity > 1) {
-                    groceryDao.update(grocery.copy(quantity = grocery.quantity - 1))
-                } else {
-                    groceryDao.delete(grocery)
-                }
-            }
-            _scannedGrocery.value = null
-        }
-    }
-
-    fun rescan() {
-        _scannedGrocery.value = null
-    }
-}
 
 @Composable
 fun ScanScreen(
-    type: String,
-    viewModel: ScanViewModel = hiltViewModel(),
-    onConfirm: () -> Unit
+    type: String, // "in" or "out"
+    onConfirm: () -> Unit, // Simplified callback
+    viewModel: ScanViewModel = hiltViewModel()
 ) {
-    val scannedGrocery by viewModel.scannedGrocery.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
-    LaunchedEffect(type) {
-        if (scannedGrocery == null) {
-            viewModel.scanFood(type)
+    var hasCameraPermission by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasCameraPermission = granted
+        }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview(),
+        onResult = { bitmap ->
+            bitmap?.let {
+                viewModel.identifyFood(it, type)
+            }
+        }
+    )
+
+    LaunchedEffect(hasCameraPermission) {
+        if (hasCameraPermission) {
+            if (uiState is ScanUiState.Initial) {
+                cameraLauncher.launch(null)
+            }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        if (scannedGrocery != null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Scanned: ${scannedGrocery!!.name}")
-                Text(text = "Quantity: ${scannedGrocery!!.quantity}")
-                Text(text = "Units: ${scannedGrocery!!.units}")
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
+        if (hasCameraPermission) {
+            when (val state = uiState) {
+                is ScanUiState.Initial -> {
+                    Text(text = "Let's scan your food item", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { cameraLauncher.launch(null) }) {
+                        Text("Open Camera")
+                    }
+                }
+                is ScanUiState.Loading -> {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Identifying food...", style = MaterialTheme.typography.bodyLarge)
+                }
+                is ScanUiState.Success -> {
+                    Text(text = "Identified Food:", style = MaterialTheme.typography.titleLarge)
+                    Text(text = state.foodName, style = MaterialTheme.typography.headlineMedium)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    // TODO: Add quantity and expiry date input fields here
                     Button(onClick = {
-                        viewModel.confirmScan(type, scannedGrocery!!)
+                        // For now, saving with dummy data
+                        viewModel.saveGrocery(state.foodName, 1, 7, "Unknown")
                         onConfirm()
                     }) {
                         Text("Confirm")
                     }
-                    Button(onClick = { viewModel.rescan() }) {
-                        Text("Rescan")
+                }
+                is ScanUiState.Error -> {
+                    Text(text = "Error", style = MaterialTheme.typography.titleLarge)
+                    Text(text = state.message, style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { cameraLauncher.launch(null) }) {
+                        Text("Try Again")
                     }
                 }
             }
         } else {
-            Text(text = "Scanning food $type...")
+            Text("Camera permission is required to scan food items.")
         }
     }
 }

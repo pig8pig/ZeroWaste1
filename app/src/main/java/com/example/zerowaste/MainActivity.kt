@@ -106,7 +106,10 @@ fun MainScreen() {
             composable("all-groceries") { AllGroceriesScreen() }
             composable("scan/{type}") { backStackEntry ->
                 val type = backStackEntry.arguments?.getString("type") ?: "in"
-                ScanScreen(type = type, onConfirm = { navController.navigate("home") })
+                ScanScreen(
+                    type = type,
+                    onConfirm = { navController.navigate("home") }
+                )
             }
             composable("order") { OrderScreen() }
             composable("recipes") { RecipeScreen() }
@@ -224,10 +227,15 @@ fun OrderScreen() {
     Text(text = "Order Screen")
 }
 
+@Composable
+fun RecipesScreen() {
+    Text(text = "Recipes Screen")
+}
+
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     ZeroWasteTheme {
-        MainScreen()
+        //MainScreen()
     }
 }
