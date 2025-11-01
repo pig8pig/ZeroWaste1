@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -29,17 +30,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.zerowaste.data.model.Grocery
+import com.example.zerowaste.ui.all_groceries.AllGroceriesScreen
+import com.example.zerowaste.ui.home.HomeViewModel
 import com.example.zerowaste.ui.theme.ZeroWasteTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +60,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-data class FoodItem(val name: String, val expiryDate: String)
-
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -61,6 +68,9 @@ fun MainScreen() {
             BottomAppBar {
                 IconButton(onClick = { navController.navigate("home") }) {
                     Icon(Icons.Filled.Home, contentDescription = "Home")
+                }
+                IconButton(onClick = { navController.navigate("all-groceries") }) {
+                    Icon(Icons.Filled.List, contentDescription = "All Groceries")
                 }
                 IconButton(onClick = { navController.navigate("scan") }) {
                     Icon(Icons.Filled.Scanner, contentDescription = "Scan")
@@ -81,6 +91,7 @@ fun MainScreen() {
     ) { innerPadding ->
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
             composable("home") { HomeScreen(navController) }
+            composable("all-groceries") { AllGroceriesScreen() }
             composable("scan") { ScanScreen() }
             composable("order") { OrderScreen() }
             composable("recipes") { RecipesScreen() }
@@ -89,12 +100,11 @@ fun MainScreen() {
 }
 
 @Composable
-fun HomeScreen(navController: NavController) {
-    val expiringFoods = listOf(
-        FoodItem("Milk", "Expires in 2 days"),
-        FoodItem("Bread", "Expires in 3 days"),
-        FoodItem("Chicken", "Expires tomorrow")
-    )
+fun HomeScreen(
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    val expiringSoon by viewModel.expiringSoon.collectAsState()
 
     Column(
         modifier = Modifier
@@ -128,15 +138,22 @@ fun HomeScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn {
-            items(expiringFoods) { food ->
-                FoodListItem(food)
+            items(expiringSoon) { grocery ->
+                FoodListItem(grocery)
             }
         }
     }
 }
 
 @Composable
-fun FoodListItem(food: FoodItem) {
+fun FoodListItem(grocery: Grocery) {
+    val expiryText = when {
+        grocery.daysToExpiry < 0 -> "Expired"
+        grocery.daysToExpiry == 0 -> "Expires today"
+        grocery.daysToExpiry == 1 -> "Expires tomorrow"
+        else -> "Expires in ${grocery.daysToExpiry} days"
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -149,8 +166,8 @@ fun FoodListItem(food: FoodItem) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = food.name, style = MaterialTheme.typography.bodyLarge)
-            Text(text = food.expiryDate, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
+            Text(text = grocery.name, style = MaterialTheme.typography.bodyLarge)
+            Text(text = expiryText, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

@@ -1,0 +1,54 @@
+package com.example.zerowaste.ui.all_groceries
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.zerowaste.data.model.Grocery
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
+    val groceries by viewModel.groceries.collectAsState()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Search Groceries") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(groceries) { grocery ->
+                GroceryItem(grocery = grocery)
+            }
+        }
+    }
+}
+
+@Composable
+fun GroceryItem(grocery: Grocery) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(text = grocery.name, modifier = Modifier.weight(1f))
+        Text(text = "${grocery.quantity} ${grocery.units}")
+        Text(text = "Expires in ${grocery.daysToExpiry} days", modifier = Modifier.padding(start = 16.dp))
+    }
+}
