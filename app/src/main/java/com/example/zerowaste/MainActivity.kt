@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.zerowaste.data.model.Grocery
 import com.example.zerowaste.ui.all_groceries.AllGroceriesScreen
 import com.example.zerowaste.ui.home.HomeViewModel
+import com.example.zerowaste.ui.recipe.RecipeScreen
 import com.example.zerowaste.ui.scan.ScanScreen
 import com.example.zerowaste.ui.theme.ZeroWasteTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,7 +77,7 @@ fun MainScreen() {
                 }, onClick = { navController.navigate("all-groceries") })
                 BottomNavigationItem(icon = {
                     Icon(Icons.Filled.Scanner, contentDescription = "Scan")
-                }, onClick = { navController.navigate("scan") })
+                }, onClick = { navController.navigate("scan/in") })
                 BottomNavigationItem(icon = {
                     Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
                 }, onClick = { navController.navigate("order") })
@@ -99,7 +100,7 @@ fun MainScreen() {
                 ScanScreen(type = type, onConfirm = { navController.navigate("home") })
             }
             composable("order") { OrderScreen() }
-            composable("recipes") { RecipesScreen() }
+            composable("recipes") { RecipeScreen() }
         }
     }
 }
@@ -198,11 +199,6 @@ fun FoodListItem(grocery: Grocery) {
 @Composable
 fun OrderScreen() {
     Text(text = "Order Screen")
-}
-
-@Composable
-fun RecipesScreen() {
-    Text(text = "Recipes Screen")
 }
 
 @Preview(showBackground = true)
