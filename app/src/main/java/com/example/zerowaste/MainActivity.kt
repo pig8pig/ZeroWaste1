@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
@@ -31,7 +30,6 @@ import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -93,11 +91,6 @@ fun MainScreen() {
                 BottomNavigationItem(icon = {
                     Icon(Icons.Filled.RestaurantMenu, contentDescription = "Recipes")
                 }, onClick = { navController.navigate("recipes") })
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Add food */ }) {
-                Icon(Icons.Filled.Add, contentDescription = "Add food")
             }
         }
     ) { innerPadding ->
@@ -225,11 +218,6 @@ fun FoodListItem(grocery: Grocery) {
 @Composable
 fun OrderScreen() {
     Text(text = "Order Screen")
-}
-
-@Composable
-fun RecipesScreen() {
-    Text(text = "Recipes Screen")
 }
 
 @Preview(showBackground = true)
