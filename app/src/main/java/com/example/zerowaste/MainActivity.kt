@@ -144,9 +144,12 @@ fun HomeScreen(
                 }
             }
         }
-    ) {
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -156,6 +159,10 @@ fun HomeScreen(
                 Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
                 Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Co2SavingsCard()
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -202,6 +209,32 @@ fun HomeScreen(
                     FoodListItem(grocery)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun Co2SavingsCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "You've saved",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "1.2 kg", //TODO: replace with actual value
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Text(
+                text = "of CO2 this week!",
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
