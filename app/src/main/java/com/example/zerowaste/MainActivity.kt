@@ -1,8 +1,14 @@
 package com.example.zerowaste
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
@@ -31,6 +38,7 @@ import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,8 +55,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -60,12 +71,18 @@ import com.example.zerowaste.ui.order.OrderScreen
 import com.example.zerowaste.ui.recipe.RecipeScreen
 import com.example.zerowaste.ui.scan.ScanScreen
 import com.example.zerowaste.ui.theme.ZeroWasteTheme
+import com.example.zerowaste.util.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Create the notification channel
+        val notificationHelper = NotificationHelper(this)
+        notificationHelper.createNotificationChannel()
+
         setContent {
             ZeroWasteTheme {
                 MainScreen()
@@ -126,68 +143,165 @@ fun RowScope.BottomNavigationItem(icon: @Composable () -> Unit, onClick: () -> U
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val expiringSoon by viewModel.expiringSoon.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
-            Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                viewModel.checkAndNotifyOfExpiringFood()
+            }
         }
+    )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 2x2 Grid
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food In", onClick = { navController.navigate("scan/in") })
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.Scanner, text = "Food Out", onClick = { navController.navigate("scan/out") })
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.ShoppingCart, text = "Order Food", onClick = { navController.navigate("order") })
-            ActionCard(modifier = Modifier.weight(1f), icon = Icons.Default.RestaurantMenu, text = "Create Recipe", onClick = { navController.navigate("recipes") })
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(text = "Expiring Soon", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(vertical = 8.dp)
-        ) {
-            LazyColumn(modifier = Modifier.height(250.dp)) { // Constrain height of the list
-                items(expiringSoon) { grocery ->
-                    FoodListItem(grocery)
+    LaunchedEffect(key1 = true) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)) {
+                PackageManager.PERMISSION_GRANTED -> {
+                    viewModel.checkAndNotifyOfExpiringFood()
+                }
+                else -> {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
-            TextButton(
-                onClick = { navController.navigate("all-groceries") },
-                modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp)
+        }
+    }
+
+    Scaffold(
+        floatingActionButton = {
+            Row {
+                FloatingActionButton(onClick = { viewModel.rewindDay() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Rewind Day")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                FloatingActionButton(onClick = { viewModel.advanceDay() }) {
+                    Icon(Icons.Default.Add, contentDescription = "Advance Day")
+                }
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("See all")
+                Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
+                Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Co2SavingsCard()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 2x2 Grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Scanner,
+                    text = "Food In",
+                    onClick = { navController.navigate("scan/in") })
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Scanner,
+                    text = "Food Out",
+                    onClick = { navController.navigate("scan/out") })
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.ShoppingCart,
+                    text = "Order Food",
+                    onClick = { navController.navigate("order") })
+                ActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.RestaurantMenu,
+                    text = "Create Recipe",
+                    onClick = { navController.navigate("recipes") })
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(text = "Expiring Soon", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Column(
+              modifier = Modifier
+                  .clip(RoundedCornerShape(24.dp))
+                  .background(MaterialTheme.colorScheme.surfaceVariant)
+                  .padding(vertical = 8.dp)
+            ) {
+              LazyColumn(modifier = Modifier.height(250.dp)) { // Constrain height of the list
+                  items(expiringSoon) { grocery ->
+                      FoodListItem(grocery)
+                  }
+              }
+              TextButton(
+                  onClick = { navController.navigate("all-groceries") },
+                  modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp)
+              ) {
+                  Text("See all")
+                }
             }
         }
     }
 }
 
 @Composable
-fun ActionCard(modifier: Modifier = Modifier, icon: ImageVector, text: String, onClick: () -> Unit) {
+fun Co2SavingsCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "You've saved",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "1.2 kg", //TODO: replace with actual value
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Text(
+                text = "of CO2 this week!",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
+}
+
+@Composable
+fun ActionCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .aspectRatio(2.5f)
