@@ -2,7 +2,6 @@ package com.example.zerowaste.ui.all_groceries
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -30,6 +30,7 @@ import com.example.zerowaste.data.model.Grocery
 fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
     val groceries by viewModel.groceries.collectAsState()
     val filter by viewModel.filter.collectAsState()
+    val search by viewModel.search.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(text = "All Groceries", style = MaterialTheme.typography.headlineLarge)
@@ -37,8 +38,8 @@ fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = search,
+            onValueChange = { viewModel.setSearch(it) },
             label = { Text("Search Groceries") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -49,39 +50,53 @@ fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.All) }) {
-                    Text("All")
-                }
+                FilterButton(
+                    text = "All",
+                    selected = filter is GroceryFilter.All,
+                    onClick = { viewModel.setFilter(GroceryFilter.All) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.ExpiringToday) }) {
-                    Text("Today")
-                }
+                FilterButton(
+                    text = "Today",
+                    selected = filter is GroceryFilter.ExpiringToday,
+                    onClick = { viewModel.setFilter(GroceryFilter.ExpiringToday) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.ExpiringTomorrow) }) {
-                    Text("Tomorrow")
-                }
+                FilterButton(
+                    text = "Tomorrow",
+                    selected = filter is GroceryFilter.ExpiringTomorrow,
+                    onClick = { viewModel.setFilter(GroceryFilter.ExpiringTomorrow) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Fruit")) }) {
-                    Text("Fruit")
-                }
+                FilterButton(
+                    text = "Fruit",
+                    selected = (filter is GroceryFilter.Type && (filter as GroceryFilter.Type).type == "Fruit"),
+                    onClick = { viewModel.setFilter(GroceryFilter.Type("Fruit")) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Vegetable")) }) {
-                    Text("Vegetable")
-                }
+                FilterButton(
+                    text = "Vegetable",
+                    selected = (filter is GroceryFilter.Type && (filter as GroceryFilter.Type).type == "Vegetable"),
+                    onClick = { viewModel.setFilter(GroceryFilter.Type("Vegetable")) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Meat")) }) {
-                    Text("Meat")
-                }
+                FilterButton(
+                    text = "Meat",
+                    selected = (filter is GroceryFilter.Type && (filter as GroceryFilter.Type).type == "Meat"),
+                    onClick = { viewModel.setFilter(GroceryFilter.Type("Meat")) }
+                )
             }
             item {
-                Button(onClick = { viewModel.setFilter(GroceryFilter.Type("Dairy")) }) {
-                    Text("Dairy")
-                }
+                FilterButton(
+                    text = "Dairy",
+                    selected = (filter is GroceryFilter.Type && (filter as GroceryFilter.Type).type == "Dairy"),
+                    onClick = { viewModel.setFilter(GroceryFilter.Type("Dairy")) }
+                )
             }
         }
 
@@ -90,6 +105,22 @@ fun AllGroceriesScreen(viewModel: AllGroceriesViewModel = hiltViewModel()) {
                 GroceryItem(grocery = grocery)
             }
         }
+    }
+}
+
+@Composable
+private fun FilterButton(text: String, selected: Boolean, onClick: () -> Unit) {
+    val container = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val content = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = container,
+            contentColor = content
+        )
+    ) {
+        Text(text)
     }
 }
 
@@ -104,7 +135,7 @@ fun GroceryItem(grocery: Grocery) {
         Text(text = "${grocery.quantity} ${grocery.units}")
         if (grocery.daysToExpiry < 0) {
             Text(
-                text = "Expired ${grocery.daysToExpiry*-1} days ago",
+                text = "Expired ${grocery.daysToExpiry * -1} days ago",
                 modifier = Modifier.padding(start = 16.dp)
             )
         } else if (grocery.daysToExpiry == 0)  {
