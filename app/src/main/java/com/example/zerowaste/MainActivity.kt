@@ -248,7 +248,7 @@ fun HomeScreen(
                   .background(MaterialTheme.colorScheme.surfaceVariant)
                   .padding(vertical = 8.dp)
             ) {
-              LazyColumn(modifier = Modifier.height(250.dp)) { // Constrain height of the list
+              LazyColumn(modifier = Modifier.height(150.dp)) { // Constrain height of the list
                   items(expiringSoon) { grocery ->
                       FoodListItem(grocery)
                   }
