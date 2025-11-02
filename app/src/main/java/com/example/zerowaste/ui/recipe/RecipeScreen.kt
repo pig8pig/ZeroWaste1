@@ -6,19 +6,23 @@ import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,21 +44,52 @@ fun RecipeScreen(viewModel: RecipeViewModel = hiltViewModel()) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Recipes", style = MaterialTheme.typography.headlineLarge)
-            if (recipes.isNotEmpty() && isGenerating) {
-                Spacer(modifier = Modifier.padding(start = 16.dp))
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        // Top bar: use fillMaxWidth() not fillMaxSize()
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Recipes",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Top-right: spinner while generating, otherwise refresh button
+            if (isGenerating) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(28.dp),
+                    strokeWidth = 3.dp
+                )
+            } else {
+                IconButton(onClick = { viewModel.refreshRecipes() }) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh recipes"
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // The main content area
-        Box(modifier = Modifier.fillMaxSize()) {
+        // Small debug/status line so you can see what's happening with the flows:
+        Text(
+            text = "Debug: recipes=${recipes.size}, isGenerating=$isGenerating",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Main content area — give the box the remaining space
+        Box(modifier = Modifier
+            .fillMaxSize()
+        ) {
             if (recipes.isEmpty()) {
                 if (isGenerating) {
-                    // Initial loading state
+                    // animated "loading dots" message while generating first batch
                     val transition = rememberInfiniteTransition(label = "loading_dots")
                     val dotCount by transition.animateValue(
                         initialValue = 1,
@@ -73,14 +108,14 @@ fun RecipeScreen(viewModel: RecipeViewModel = hiltViewModel()) {
                         )
                     }
                 } else {
-                    // Empty state after loading is finished
+                    // Empty state when not generating
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("No ingredients to make recipes with!")
                     }
                 }
             } else {
-                // Display the list of recipes
-                LazyColumn {
+                // Display the list of recipes — LazyColumn fills the available space
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(recipes) { recipe ->
                         RecipeItem(recipe = recipe)
                     }

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +67,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.zerowaste.data.model.Grocery
 import com.example.zerowaste.ui.all_groceries.AllGroceriesScreen
 import com.example.zerowaste.ui.home.HomeViewModel
+import com.example.zerowaste.ui.order.OrderScreen
 import com.example.zerowaste.ui.recipe.RecipeScreen
 import com.example.zerowaste.ui.scan.ScanScreen
 import com.example.zerowaste.ui.theme.ZeroWasteTheme
@@ -110,6 +113,11 @@ fun MainScreen() {
                     Icon(Icons.Filled.RestaurantMenu, contentDescription = "Recipes")
                 }, onClick = { navController.navigate("recipes") })
             }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /* TODO: Add food */ }) {
+                Icon(Icons.Filled.Add, contentDescription = "Add food")
+            }
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
@@ -117,12 +125,9 @@ fun MainScreen() {
             composable("all-groceries") { AllGroceriesScreen() }
             composable("scan/{type}") { backStackEntry ->
                 val type = backStackEntry.arguments?.getString("type") ?: "in"
-                ScanScreen(
-                    type = type,
-                    onConfirm = { navController.navigate("home") }
-                )
+                ScanScreen(type = type, onConfirm = { navController.navigate("home") })
             }
-            composable("order") { OrderScreen() }
+            composable("order") { OrderScreen() } // Updated to use the new screen
             composable("recipes") { RecipeScreen() }
         }
     }
@@ -240,10 +245,23 @@ fun HomeScreen(
 
             Text(text = "Expiring Soon", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn {
-                items(expiringSoon) { grocery ->
-                    FoodListItem(grocery)
+            
+            Column(
+              modifier = Modifier
+                  .clip(RoundedCornerShape(24.dp))
+                  .background(MaterialTheme.colorScheme.surfaceVariant)
+                  .padding(vertical = 8.dp)
+            ) {
+              LazyColumn(modifier = Modifier.height(250.dp)) { // Constrain height of the list
+                  items(expiringSoon) { grocery ->
+                      FoodListItem(grocery)
+                  }
+              }
+              TextButton(
+                  onClick = { navController.navigate("all-groceries") },
+                  modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp)
+              ) {
+                  Text("See all")
                 }
             }
         }
@@ -312,33 +330,28 @@ fun FoodListItem(grocery: Grocery) {
         else -> "Expires in ${grocery.daysToExpiry} days"
     }
 
-    Card(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = grocery.name, style = MaterialTheme.typography.bodyLarge)
-            Text(text = expiryText, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
-        }
+        Text(text = grocery.name, style = MaterialTheme.typography.bodyLarge)
+        Text(text = expiryText, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
+
 @Composable
-fun OrderScreen() {
-    Text(text = "Order Screen")
+fun RecipesScreen() {
+    Text(text = "Recipes Screen")
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     ZeroWasteTheme {
-        //MainScreen()
+        MainScreen()
     }
 }

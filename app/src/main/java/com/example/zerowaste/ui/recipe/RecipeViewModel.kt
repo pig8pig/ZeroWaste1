@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
@@ -37,26 +37,76 @@ class RecipeViewModel @Inject constructor(
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
 
+    // Track last known grocery IDs so we can detect adds/removes
+    private var lastGroceryIds: Set<Int> = emptySet()
+    private var isFirstEmission = true
+
     init {
+        // Observe groceries and regenerate only when items are added/removed
         viewModelScope.launch {
             groceryDao.getAllGroceries()
-                .debounce(2000L)
-                .distinctUntilChanged() // Prevent re-triggering if the list hasn't changed
+                .debounce(400L) // short debounce to batch quick successive changes
                 .collect { groceries ->
-                    generateAndCacheRecipes(groceries)
+                    try {
+                        // Normalize current grocery id set
+                        val currentIds = groceries.mapNotNull { it.id }.toSet()
+
+                        if (isFirstEmission) {
+                            // On first emission: if there are no cached recipes, generate once.
+                            // Otherwise just remember the snapshot and do not regenerate.
+                            val cached = recipeDao.getAllRecipes().first()
+                            if (cached.isEmpty() && groceries.isNotEmpty()) {
+                                generateAndCacheRecipes(groceries)
+                            }
+                            lastGroceryIds = currentIds
+                            isFirstEmission = false
+                            return@collect
+                        }
+
+                        // Detect addition/removal by comparing id-sets
+                        if (currentIds != lastGroceryIds) {
+                            // Only regenerate if an item was added or removed.
+                            // (This will also fire if the id set changes for any reason.)
+                            // Prevent concurrent generation
+                            if (!_isGenerating.value) {
+                                generateAndCacheRecipes(groceries)
+                            } else {
+                                Log.d("RecipeViewModel", "Generation already in progress — skipping regenerate.")
+                            }
+                            lastGroceryIds = currentIds
+                        } else {
+                            // No add/remove — do nothing
+                            Log.d("RecipeViewModel", "Grocery list changed but IDs unchanged — not regenerating.")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("RecipeViewModel", "Error while observing groceries", e)
+                    }
                 }
+        }
+    }
+
+    /**
+     * Public: allow explicit refresh too (keeps previous functionality).
+     */
+    fun refreshRecipes() {
+        viewModelScope.launch {
+            if (_isGenerating.value) return@launch
+            val groceries = groceryDao.getAllGroceries().first()
+            if (groceries.isEmpty()) {
+                recipeDao.clearRecipes()
+                return@launch
+            }
+            generateAndCacheRecipes(groceries)
         }
     }
 
     private fun generateAndCacheRecipes(groceries: List<Grocery>) {
         viewModelScope.launch {
-            if (groceries.isEmpty()) {
-                recipeDao.clearRecipes()
-                return@launch
-            }
-            
+            if (_isGenerating.value) return@launch
+
             _isGenerating.value = true
             try {
+                // TODO: remove hard-coded API key and load from secure store in production
                 val generativeModel = GenerativeModel(
                     modelName = "gemini-2.5-flash",
                     apiKey = "AIzaSyBEV7Vy_PJS7nLgF_Sizw2d9RDAagdeU8E"
@@ -71,12 +121,14 @@ class RecipeViewModel @Inject constructor(
                 val cleanedResponse = if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
                     responseText.substring(startIndex, endIndex + 1)
                 } else {
+                    Log.e("RecipeViewModel", "Could not parse JSON array from model response. Raw: ${responseText.take(500)}")
                     return@launch
                 }
 
                 val json = Json { ignoreUnknownKeys = true }
                 val recipeList = json.decodeFromString<List<Recipe>>(cleanedResponse)
-                
+
+                // Replace cached recipes with newly generated ones
                 recipeDao.clearAndInsert(recipeList)
 
             } catch (e: Exception) {
@@ -88,7 +140,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     private fun buildPrompt(groceries: List<Grocery>): String {
-        val ingredientsList = groceries.joinToString("\n") { 
+        val ingredientsList = groceries.joinToString("\n") {
             "- ${it.name} (${it.quantity} ${it.units}) - expires in ${it.daysToExpiry} days"
         }
 
