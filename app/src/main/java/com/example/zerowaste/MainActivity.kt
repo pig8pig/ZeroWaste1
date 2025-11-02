@@ -1,5 +1,6 @@
 package com.example.zerowaste
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
@@ -122,6 +124,7 @@ fun RowScope.BottomNavigationItem(icon: @Composable () -> Unit, onClick: () -> U
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -131,15 +134,19 @@ fun HomeScreen(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.advanceDay() }) {
-                Icon(Icons.Default.Add, contentDescription = "Advance Day")
+            Row {
+                FloatingActionButton(onClick = { viewModel.rewindDay() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Rewind Day")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                FloatingActionButton(onClick = { viewModel.advanceDay() }) {
+                    Icon(Icons.Default.Add, contentDescription = "Advance Day")
+                }
             }
         }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
