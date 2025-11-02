@@ -75,17 +75,18 @@ fun RecipeScreen(viewModel: RecipeViewModel = hiltViewModel()) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Small debug/status line so you can see what's happening with the flows:
-        Text(
-            text = "Debug: recipes=${recipes.size}, isGenerating=$isGenerating",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+//        Text(
+////            text = "Debug: recipes=${recipes.size}, isGenerating=$isGenerating",
+////            style = MaterialTheme.typography.bodySmall,
+////            modifier = Modifier.padding(vertical = 4.dp)
+////        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // Main content area — give the box the remaining space
-        Box(modifier = Modifier
-            .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
         ) {
             if (recipes.isEmpty()) {
                 if (isGenerating) {

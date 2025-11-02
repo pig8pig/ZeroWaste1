@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RestaurantMenu
@@ -114,11 +115,6 @@ fun MainScreen() {
                 }, onClick = { navController.navigate("recipes") })
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Add food */ }) {
-                Icon(Icons.Filled.Add, contentDescription = "Add food")
-            }
-        }
     ) { innerPadding ->
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
             composable("home") { HomeScreen(navController) }
@@ -182,7 +178,7 @@ fun HomeScreen(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 FloatingActionButton(onClick = { viewModel.advanceDay() }) {
-                    Icon(Icons.Default.Add, contentDescription = "Advance Day")
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Advance Day")
                 }
             }
         }
@@ -198,7 +194,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "ZeroWaste", style = MaterialTheme.typography.headlineLarge)
+                Text(text = "ZERO", style = MaterialTheme.typography.headlineLarge)
                 Icon(Icons.Default.AccountCircle, contentDescription = "Account", modifier = Modifier.size(40.dp))
             }
 
