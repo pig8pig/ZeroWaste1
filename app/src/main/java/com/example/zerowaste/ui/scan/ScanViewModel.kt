@@ -9,6 +9,7 @@ import com.example.zerowaste.data.model.Grocery
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.zerowaste.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +40,7 @@ class ScanViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<ScanUiState> = MutableStateFlow(ScanUiState.Initial)
+    private val apiKey = BuildConfig.GEMINI_API_KEY
     val uiState: StateFlow<ScanUiState> = _uiState.asStateFlow()
 
     fun identifyFood(image: Bitmap) {
@@ -47,7 +49,7 @@ class ScanViewModel @Inject constructor(
 
             val generativeModel = GenerativeModel(
                 modelName = "gemini-2.5-flash",
-                apiKey = "AIzaSyBEV7Vy_PJS7nLgF_Sizw2d9RDAagdeU8E"
+                apiKey = apiKey
             )
 
             val prompt = """Analyze the image of the food item. Your goal is to identify the food and estimate its properties. Respond ONLY with a valid JSON object.

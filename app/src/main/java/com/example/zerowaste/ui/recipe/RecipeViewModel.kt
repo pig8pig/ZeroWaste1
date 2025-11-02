@@ -9,6 +9,7 @@ import com.example.zerowaste.data.model.Grocery
 import com.example.zerowaste.data.model.Recipe
 import com.google.ai.client.generativeai.GenerativeModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.zerowaste.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,9 @@ class RecipeViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
+
+
+    private val apiKey = BuildConfig.GEMINI_API_KEY
 
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
@@ -106,10 +110,9 @@ class RecipeViewModel @Inject constructor(
 
             _isGenerating.value = true
             try {
-                // TODO: remove hard-coded API key and load from secure store in production
                 val generativeModel = GenerativeModel(
                     modelName = "gemini-2.5-flash",
-                    apiKey = "AIzaSyBEV7Vy_PJS7nLgF_Sizw2d9RDAagdeU8E"
+                    apiKey = apiKey
                 )
 
                 val prompt = buildPrompt(groceries)
