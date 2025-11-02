@@ -102,6 +102,21 @@ fun GroceryItem(grocery: Grocery) {
     ) {
         Text(text = grocery.name, modifier = Modifier.weight(1f))
         Text(text = "${grocery.quantity} ${grocery.units}")
-        Text(text = "Expires in ${grocery.daysToExpiry} days", modifier = Modifier.padding(start = 16.dp))
+        if (grocery.daysToExpiry < 0) {
+            Text(
+                text = "Expired ${grocery.daysToExpiry*-1} days ago",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        } else if (grocery.daysToExpiry == 0)  {
+            Text(
+                text = "Expires Today!",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        } else {
+            Text(
+                text = "Expires in ${grocery.daysToExpiry} days",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
     }
 }

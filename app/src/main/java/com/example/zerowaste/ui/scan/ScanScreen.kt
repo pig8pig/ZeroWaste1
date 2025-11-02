@@ -129,7 +129,11 @@ fun ScanScreen(
                                 containerColor = Color(0xFF4A90E2) // A nice blue color
                             )
                         ) {
-                            Text("Add and scan again")
+                            if (type == "in") {
+                                Text("Add item and scan again")
+                            } else {
+                                Text("Remove item and scan again")
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -146,10 +150,20 @@ fun ScanScreen(
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             OutlinedButton(
-                                onClick = { onConfirm() },
+                                onClick = {
+                                    if (type == "in") {
+                                        viewModel.saveGrocery(food)
+                                    } else {
+                                        viewModel.removeGrocery(food)
+                                    }
+                                    onConfirm()},
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("Done")
+                                if (type == "in") {
+                                    Text("Add item")
+                                } else {
+                                    Text("Remove item")
+                                }
                             }
                         }
                     }
