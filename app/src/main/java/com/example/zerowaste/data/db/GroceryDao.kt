@@ -20,8 +20,11 @@ interface GroceryDao {
     @Query("SELECT * FROM groceries")
     suspend fun getAll(): List<Grocery>
 
-    @Query("SELECT * FROM groceries WHERE daysToExpiry <= 1")
-    suspend fun getExpiringAndExpired(): List<Grocery>
+    @Query("SELECT * FROM groceries WHERE daysToExpiry < 0")
+    suspend fun getExpired(): List<Grocery>
+
+    @Query("SELECT * FROM groceries WHERE daysToExpiry >= 0 AND daysToExpiry <= 1")
+    suspend fun getExpiringSoonList(): List<Grocery>
 
     @Query("SELECT * FROM groceries WHERE daysToExpiry = 0")
     fun getExpiringToday(): Flow<List<Grocery>>

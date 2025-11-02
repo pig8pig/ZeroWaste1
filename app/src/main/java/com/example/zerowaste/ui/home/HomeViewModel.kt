@@ -27,10 +27,6 @@ class HomeViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    init {
-        checkAndNotifyOfExpiringFood()
-    }
-
     fun advanceDay() {
         viewModelScope.launch {
             val allGroceries = groceryDao.getAll()
@@ -54,14 +50,18 @@ class HomeViewModel @Inject constructor(
 
     fun checkAndNotifyOfExpiringFood() {
         viewModelScope.launch {
-            val expiringFood = groceryDao.getExpiringAndExpired()
-            if (expiringFood.isNotEmpty()) {
-                val notificationHelper = NotificationHelper(context)
-                val foodNames = expiringFood.joinToString { it.name }
-                notificationHelper.showNotification(
-                    "Food is expiring!",
-                    "Don't forget to use your: $foodNames"
-                )
+            val notificationHelper = NotificationHelper(context)
+
+            val expiredFood = groceryDao.getExpired()
+            if (expiredFood.isNotEmpty()) {
+                val foodNames = expiredFood.joinToString { it.name }
+                notificationHelper.showNotification(1, "Food has expired!", "The following items have expired: $foodNames")
+            }
+
+            val expiringSoonFood = groceryDao.getExpiringSoonList()
+            if (expiringSoonFood.isNotEmpty()) {
+                val foodNames = expiringSoonFood.joinToString { it.name }
+                notificationHelper.showNotification(2, "Food is expiring soon!", "Don't forget to use your: $foodNames")
             }
         }
     }
